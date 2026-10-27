@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuProfe20 Lab - Energía Mecánica (12 Retos)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+        
+        body { margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100dvh; user-select: none; }
+        .font-fun { font-family: 'Nunito', sans-serif; }
+        
+        @keyframes floatUp { 0% { transform: translateY(105vh) rotate(0deg); } 100% { transform: translateY(-105vh) rotate(360deg); } }
+        @keyframes slideInRight { 0% { opacity: 0; transform: translateX(15px); } 100% { opacity: 1; transform: translateX(0); } }
+        @keyframes confettiExplosion { 0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); opacity: 0; } }
+        @keyframes jellyPop { 0% { transform: scale3d(.3, .3, .3); opacity: 0; } 20% { transform: scale3d(1.05, 1.05, 1.05); } 40% { transform: scale3d(.95, .95, .95); } 60% { transform: scale3d(1.02, 1.02, 1.02); opacity: 1; } 80% { transform: scale3d(.98, .98, .98); } 100% { transform: scale3d(1, 1, 1); opacity: 1; } }
+        @keyframes fadeInRow { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes robotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes robotThinkTilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg) translateY(-3px); } }
+        @keyframes robotJump { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-15px); } }
+        @keyframes robotTalkArmL { 0%, 100% { transform: rotate(45deg); } 50% { transform: rotate(95deg); } }
+        @keyframes robotTalkArmR { 0%, 100% { transform: rotate(-45deg); } 50% { transform: rotate(-95deg); } }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .animate-floatUp { animation: floatUp linear infinite; }
+        .animate-slideInRight { animation: slideInRight 0.3s ease-out forwards; }
+        .animate-confettiExplosion { animation: confettiExplosion 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .animate-jellyPop { animation: jellyPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-fadeInRow { animation: fadeInRow 0.3s ease-out forwards; }
+        .animate-robotFloat { animation: robotFloat 3s ease-in-out infinite; }
+        .animate-robotThinkTilt { animation: robotThinkTilt 2s ease-in-out infinite; }
+        .animate-robotJump { animation: robotJump 1s cubic-bezier(0.28, 0.84, 0.42, 1) infinite; }
+        .animate-robotTalkArmL { animation: robotTalkArmL 0.6s ease-in-out infinite; }
+        .animate-robotTalkArmR { animation: robotTalkArmR 0.6s ease-in-out infinite 0.1s; }
+
+        .katex { font-weight: 900 !important; }
+        .katex-display { margin: 0 !important; padding: 0 !important; }
+        
+        .math-card .katex { font-size: clamp(0.7rem, 1.3vw, 1rem) !important; color: #1e293b !important; }
+        .math-enunciado .katex { font-size: clamp(0.9rem, 1.8vw, 1.2rem) !important; color: #ffffff !important; }
+        .math-row .katex { font-size: clamp(1.1rem, 2.2vw, 1.6rem) !important; color: #0f172a !important; }
+        .math-row-final .katex { font-size: clamp(1.3rem, 2.6vw, 2rem) !important; color: #0f172a !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, memo } = React;
+
+        const Icon = ({ paths, className = "", size = 24, fill = "none", strokeWidth = "2.5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{__html: paths}} />
+        );
+
+        const VolumeX = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>' />;
+        const Volume2 = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>' />;
+        const Zap = (p) => <Icon {...p} paths='<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' />;
+        const Sparkles = (p) => <Icon {...p} paths='<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 3v4"/><path d="M17 5h4"/>' />;
+        const Home = (p) => <Icon {...p} paths='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' />;
+        const ChevronLeft = (p) => <Icon {...p} paths='<polyline points="15 18 9 12 15 6"/>' />;
+        const ChevronRight = (p) => <Icon {...p} paths='<polyline points="9 18 15 12 9 6"/>' />;
+        const CheckCircle = (p) => <Icon {...p} paths='<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' />;
+
+        const AudioController = {
+            ctx: null, muted: false,
+            init: function() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) this.ctx = new AudioContext();
+            },
+            play: function(type) {
+                if (this.muted || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                const now = this.ctx.currentTime;
+                
+                if (type === 'pop') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(500, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                    gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'success') {
+                    osc.disconnect();
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                        o.type = 'triangle'; o.frequency.value = freq;
+                        o.connect(g); g.connect(this.ctx.destination);
+                        const startTime = now + (i * 0.07);
+                        g.gain.setValueAtTime(0, startTime); g.gain.linearRampToValueAtTime(0.2, startTime + 0.04); g.gain.linearRampToValueAtTime(0, startTime + 0.35);
+                        o.start(startTime); o.stop(startTime + 0.35);
+                    });
+                } else if (type === 'swoosh') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(280, now); osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now); osc.stop(now + 0.18);
+                }
+            },
+            toggleMute: function() { this.muted = !this.muted; return this.muted; }
+        };
+
+        const ENERGY_EXERCISES = [
+            {
+                id: 1,
+                title: "Pág. 5 - Ejercicio 1",
+                subtitle: "Energía Mecánica Total",
+                cardGradient: "from-orange-500/40 to-red-600/40 border-orange-400",
+                badgeColor: "bg-orange-500",
+                enunciadoText: "Un cuerpo de 2 kg pasa por un punto (h = 5 m) con rapidez de 10 m/s. Determine su energía mecánica total respecto al piso. (g=10 m/s²)",
+                steps: [
+                    { latex: String.raw`E_M = E_C + E_{PG}`, propertyText: "Ecuación Base", robotSpeech: "La energía mecánica total es la suma de la energía cinética y potencial." },
+                    { latex: String.raw`E_M = \frac{1}{2}mv^2 + mgh`, propertyText: "Fórmulas", robotSpeech: "Sustituimos: un medio de la masa por velocidad al cuadrado, más masa por gravedad por altura." },
+                    { latex: String.raw`E_M = \frac{1}{2}(2)(10)^2 + (2)(10)(5)`, propertyText: "Reemplazo", robotSpeech: "Colocamos nuestros datos: masa = 2 kg, v = 10 m/s, g = 10 y h = 5 m." },
+                    { latex: String.raw`E_M = 100 + 100 = \mathbf{200\text{ J}}`, propertyText: "Resultado Final", robotSpeech: "¡Sumamos ambas energías y obtenemos 200 Joules! Súper fácil." }
+                ]
+            },
+            {
+                id: 2,
+                title: "Pág. 5 - Ejercicio 2",
+                subtitle: "Caída en Rampa Lis",
+                cardGradient: "from-amber-500/40 to-orange-600/40 border-amber-400",
+                badgeColor: "bg-amber-500",
+                enunciadoText: "Determine la rapidez en el punto más bajo B, si el cuerpo es soltado en la parte alta A (v = 0). Altura en A es 5 m, g = 10 m/s².",
+                steps: [
+                    { latex: String.raw`E_{M_A} = E_{M_B}`, propertyText: "Conservación", robotSpeech: "Al ser liso, la energía se conserva. La energía en A es igual a la de B." },
+                    { latex: String.raw`mgh_A = \frac{1}{2}mv_B^2`, propertyText: "Análisis", robotSpeech: "En A solo hay altura (potencial) y en B solo hay velocidad (cinética)." },
+                    { latex: String.raw`gh_A = \frac{v_B^2}{2} \Rightarrow 10(5) = \frac{v_B^2}{2}`, propertyText: "Sustitución", robotSpeech: "La masa 'm' se cancela en ambos lados. Luego reemplazamos g y h." },
+                    { latex: String.raw`100 = v_B^2 \Rightarrow v_B = \mathbf{10\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "Multiplicamos 50 por 2, sacamos raíz cuadrada... ¡y obtenemos 10 m/s!" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Pág. 5 - Ejercicio 3",
+                subtitle: "Descenso Corto",
+                cardGradient: "from-yellow-500/40 to-amber-600/40 border-yellow-400",
+                badgeColor: "bg-yellow-500",
+                enunciadoText: "La esfera es soltada en el punto A (h = 0,8 m). Determine su rapidez en el nivel de referencia B. (g = 10 m/s²)",
+                steps: [
+                    { latex: String.raw`E_{PG_A} = E_{C_B}`, propertyText: "Igualdad", robotSpeech: "Como se suelta (v=0), toda su energía potencial se transforma en cinética al bajar." },
+                    { latex: String.raw`\cancel{m}gh_A = \frac{1}{2}\cancel{m}v_B^2`, propertyText: "Masa irrelevante", robotSpeech: "Eliminamos la masa de la ecuación. ¡La velocidad final no depende de ella!" },
+                    { latex: String.raw`10(0.8) = \frac{v_B^2}{2} \Rightarrow 8 = \frac{v_B^2}{2}`, propertyText: "Operación", robotSpeech: "Multiplicamos 10 por 0,8 lo que nos da 8 en la izquierda." },
+                    { latex: String.raw`16 = v_B^2 \Rightarrow v_B = \mathbf{4\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "El 2 pasa a multiplicar. La raíz cuadrada de 16 es exactamente 4 m/s." }
+                ]
+            },
+            {
+                id: 4,
+                title: "Pág. 5 - Ejercicio 4",
+                subtitle: "Lanzamiento y Caída",
+                cardGradient: "from-lime-500/40 to-green-600/40 border-lime-400",
+                badgeColor: "bg-lime-500",
+                enunciadoText: "El cuerpo pasa por A (h = 4 m) con rapidez inicial de 8 m/s. Determine su rapidez en el punto más bajo B. (g = 10 m/s²)",
+                steps: [
+                    { latex: String.raw`E_{C_A} + E_{PG_A} = E_{C_B}`, propertyText: "Energía Inicial", robotSpeech: "¡Cuidado aquí! En el punto A el cuerpo ya tiene velocidad Y altura." },
+                    { latex: String.raw`\frac{\cancel{m}v_A^2}{2} + \cancel{m}gh_A = \frac{\cancel{m}v_B^2}{2}`, propertyText: "Sin masa", robotSpeech: "Dividimos todo entre la masa 'm' para simplificar la vida." },
+                    { latex: String.raw`\frac{8^2}{2} + 10(4) = \frac{v_B^2}{2}`, propertyText: "Sustitución", robotSpeech: "Reemplazamos con v=8 y h=4." },
+                    { latex: String.raw`32 + 40 = \frac{v_B^2}{2} \Rightarrow v_B = \mathbf{12\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "Sumamos (72), multiplicamos por 2 (144) y su raíz es 12 m/s." }
+                ]
+            },
+            {
+                id: 5,
+                title: "Pág. 6 - Ejercicio 5",
+                subtitle: "Curva Circular",
+                cardGradient: "from-emerald-500/40 to-teal-600/40 border-emerald-400",
+                badgeColor: "bg-emerald-500",
+                enunciadoText: "Se suelta una esfera en A en una rampa circular de radio R = 0,45 m. Determine su rapidez en el punto más bajo B.",
+                steps: [
+                    { latex: String.raw`E_{M_A} = E_{M_B} \Rightarrow mgh_A = \frac{1}{2}mv_B^2`, propertyText: "Igualdad Inicial", robotSpeech: "Volvemos al clásico: energía potencial se vuelve cinética." },
+                    { latex: String.raw`h_A = R = 0.45\text{ m}`, propertyText: "Altura = Radio", robotSpeech: "La altura de caída en este cuarto de circunferencia es igual al radio R." },
+                    { latex: String.raw`10(0.45) = \frac{v_B^2}{2} \Rightarrow 4.5 = \frac{v_B^2}{2}`, propertyText: "Reemplazando", robotSpeech: "Se canceló la masa y multiplicamos g (10) por 0,45." },
+                    { latex: String.raw`v_B^2 = 9 \Rightarrow v_B = \mathbf{3\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "Pasamos a multiplicar el 2 y sacamos raíz a 9. ¡Da 3 m/s!" }
+                ]
+            },
+            {
+                id: 6,
+                title: "Pág. 6 - Ejercicio 6",
+                subtitle: "Altura de Montaña Rusa",
+                cardGradient: "from-cyan-500/40 to-blue-600/40 border-cyan-400",
+                badgeColor: "bg-cyan-500",
+                enunciadoText: "El carrito empieza en A (reposo). Si al pasar por B tiene una rapidez de 10 m/s, ¿cuál es el valor de la altura H? (g=10)",
+                steps: [
+                    { latex: String.raw`mgH = \frac{1}{2}mv_B^2`, propertyText: "Conservación", robotSpeech: "Toda la energía potencial inicial debido a H se transforma en movimiento en B." },
+                    { latex: String.raw`gH = \frac{v_B^2}{2}`, propertyText: "Despejando H", robotSpeech: "Anulamos las masas en ambos extremos de la ecuación." },
+                    { latex: String.raw`10 \cdot H = \frac{10^2}{2}`, propertyText: "Sustituyendo v", robotSpeech: "Reemplazamos g por 10 y la velocidad v de B que también es 10." },
+                    { latex: String.raw`10H = 50 \Rightarrow H = \mathbf{5\text{ m}}`, propertyText: "Resultado Final", robotSpeech: "Resolviendo la fracción da 50. Dividiendo entre 10 obtenemos H = 5 metros." }
+                ]
+            },
+            {
+                id: 7,
+                title: "Pág. 7 - Ejercicio 1",
+                subtitle: "Rapidez Constante",
+                cardGradient: "from-indigo-500/40 to-blue-600/40 border-indigo-400",
+                badgeColor: "bg-indigo-500",
+                enunciadoText: "El cuerpo pasa por el punto A con una rapidez de 10 m/s. (Asuma h=20m). Determine su energía mecánica. Masa = 2kg.",
+                steps: [
+                    { latex: String.raw`E_M = E_C + E_{PG}`, propertyText: "Fórmula de EM", robotSpeech: "Calculamos la Energía Mecánica evaluando en el punto A." },
+                    { latex: String.raw`E_M = \frac{1}{2}mv_A^2 + mgh_A`, propertyText: "Desglose", robotSpeech: "Colocamos las fórmulas de cinética y potencial gravitatoria juntas." },
+                    { latex: String.raw`E_M = \frac{1}{2}(2)(10)^2 + 2(10)(20)`, propertyText: "Sustitución", robotSpeech: "Ponemos los datos: m=2, v=10, y altura=20." },
+                    { latex: String.raw`E_M = 100 + 400 = \mathbf{500\text{ J}}`, propertyText: "Resultado Final", robotSpeech: "Al sumar ambas contribuciones obtenemos 500 Joules." }
+                ]
+            },
+            {
+                id: 8,
+                title: "Pág. 7 - Ejercicio 2",
+                subtitle: "Rapidez Final",
+                cardGradient: "from-violet-500/40 to-purple-600/40 border-violet-400",
+                badgeColor: "bg-violet-500",
+                enunciadoText: "La esfera es soltada en A (altura = 20 m). Determine su rapidez al llegar al nivel de referencia B. (g = 10)",
+                steps: [
+                    { latex: String.raw`E_{PG_A} = E_{C_B}`, propertyText: "Transformación", robotSpeech: "Al soltar un objeto, su energía cambia de potencial a totalmente cinética al chocar el suelo." },
+                    { latex: String.raw`\cancel{m}gh_A = \frac{1}{2}\cancel{m}v_B^2`, propertyText: "Indep. de masa", robotSpeech: "Recuerda: la velocidad de caída libre no depende de la masa." },
+                    { latex: String.raw`10(20) = \frac{v_B^2}{2} \Rightarrow 200 = \frac{v_B^2}{2}`, propertyText: "Multiplicando", robotSpeech: "Multiplicamos la gravedad por la altura de 20m." },
+                    { latex: String.raw`v_B^2 = 400 \Rightarrow v_B = \mathbf{20\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "El dos multiplica al 200 y nos da 400. La raíz cuadrada es 20." }
+                ]
+            },
+            {
+                id: 9,
+                title: "Pág. 7 - Ejercicio 3",
+                subtitle: "Movimiento de Subida",
+                cardGradient: "from-fuchsia-500/40 to-pink-600/40 border-fuchsia-400",
+                badgeColor: "bg-fuchsia-500",
+                enunciadoText: "Una esfera lanzada desde el piso (A) llega a B (h = 40 m) con 10 m/s. Halle la rapidez de lanzamiento inicial en A.",
+                steps: [
+                    { latex: String.raw`E_{C_A} = E_{C_B} + E_{PG_B}`, propertyText: "Conservación", robotSpeech: "Toda la energía cinética inicial se reparte en cinética y potencial al subir." },
+                    { latex: String.raw`\frac{\cancel{m}v_A^2}{2} = \frac{\cancel{m}v_B^2}{2} + \cancel{m}gh_B`, propertyText: "Simplificación", robotSpeech: "Cancelamos las masas en cada término de la ecuación." },
+                    { latex: String.raw`\frac{v_A^2}{2} = \frac{10^2}{2} + 10(40)`, propertyText: "Reemplazando", robotSpeech: "Reemplazamos con la velocidad y altura en la cumbre." },
+                    { latex: String.raw`\frac{v_A^2}{2} = 50 + 400 \Rightarrow v_A = \mathbf{30\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "Sumamos 450, lo multiplicamos por 2 para dar 900. ¡Su raíz es 30 m/s!" }
+                ]
+            },
+            {
+                id: 10,
+                title: "Pág. 7 - Ejercicio 4",
+                subtitle: "Rampa Ascendente",
+                cardGradient: "from-pink-500/40 to-rose-600/40 border-pink-400",
+                badgeColor: "bg-pink-500",
+                enunciadoText: "El bloque es lanzado en A (piso) con 30 m/s. Determine su rapidez al pasar por la rampa en B (h = 25 m).",
+                steps: [
+                    { latex: String.raw`\frac{v_A^2}{2} = \frac{v_B^2}{2} + gh_B`, propertyText: "Ecuación Reducida", robotSpeech: "Ya sabemos que la masa se cancela, así que partimos directo desde la ecuación simplificada." },
+                    { latex: String.raw`\frac{30^2}{2} = \frac{v_B^2}{2} + 10(25)`, propertyText: "Datos", robotSpeech: "Colocamos la velocidad inicial en la izquierda y la altura de la rampa en la derecha." },
+                    { latex: String.raw`450 = \frac{v_B^2}{2} + 250`, propertyText: "Operación", robotSpeech: "El cuadrado de 30 es 900, entre dos da 450." },
+                    { latex: String.raw`200 = \frac{v_B^2}{2} \Rightarrow v_B = \mathbf{20\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "Restamos 250, multiplicamos por 2 y obtenemos la raíz. ¡Magia, da 20 m/s!" }
+                ]
+            },
+            {
+                id: 11,
+                title: "Pág. 8 - Ejercicio 5",
+                subtitle: "Péndulo / Semiesfera",
+                cardGradient: "from-sky-500/40 to-cyan-600/40 border-sky-400",
+                badgeColor: "bg-sky-500",
+                enunciadoText: "Una esfera se suelta (v=0) desde el borde de un cuenco esférico liso de radio R = 3,6 m. Halle su rapidez en el fondo B.",
+                steps: [
+                    { latex: String.raw`E_{PG_A} = E_{C_B}`, propertyText: "Transformación Total", robotSpeech: "La esfera cae una altura exacta equivalente al radio del tazón." },
+                    { latex: String.raw`\cancel{m}gR = \frac{1}{2}\cancel{m}v_B^2`, propertyText: "Radio = Altura", robotSpeech: "Cambiamos 'h' por 'R' y cancelamos la masa de nuevo." },
+                    { latex: String.raw`10(3.6) = \frac{v_B^2}{2} \Rightarrow 36 = \frac{v_B^2}{2}`, propertyText: "Reemplazo de R", robotSpeech: "Multiplicar por 10 siempre es fácil, solo movemos la coma." },
+                    { latex: String.raw`v_B^2 = 72 \Rightarrow v_B = \mathbf{6\sqrt{2}\text{ m/s}}`, propertyText: "Resultado Final", robotSpeech: "72 no tiene raíz exacta, pero se simplifica como la raíz de 36x2. ¡Da 6√2 m/s!" }
+                ]
+            },
+            {
+                id: 12,
+                title: "Pág. 8 - Ejercicio 6",
+                subtitle: "Altura Máxima Alcanzada",
+                cardGradient: "from-rose-500/40 to-red-700/40 border-rose-400",
+                badgeColor: "bg-rose-500",
+                enunciadoText: "Se lanza un bloque con v = 12 m/s al ras del piso hacia una rampa lisa. Determine la altura máxima 'h' (cuando v=0).",
+                steps: [
+                    { latex: String.raw`E_{C_{piso}} = E_{PG_{max}}`, propertyText: "Sube hasta detenerse", robotSpeech: "Al llegar a la altura máxima, su velocidad es cero. Toda su cinética se volvió potencial." },
+                    { latex: String.raw`\frac{\cancel{m}v^2}{2} = \cancel{m}gh`, propertyText: "Ecuación", robotSpeech: "La clásica simplificación de masas. Solo quedan 'v' y 'h'." },
+                    { latex: String.raw`\frac{12^2}{2} = 10h \Rightarrow \frac{144}{2} = 10h`, propertyText: "Sustituyendo v", robotSpeech: "Reemplazamos con los 12 m/s iniciales." },
+                    { latex: String.raw`72 = 10h \Rightarrow h = \mathbf{7.2\text{ m}}`, propertyText: "Resultado Final", robotSpeech: "La mitad de 144 es 72. Al dividir entre 10 la gravedad, ¡Sube hasta 7.2 metros!" }
+                ]
+            }
+        ];
+
+        const MathDisplay = memo(({ latex, className = "" }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current && window.katex) {
+                    try { window.katex.render(latex, containerRef.current, { displayMode: true, throwOnError: false, strict: false, trust: true }); } 
+                    catch (e) { containerRef.current.innerText = latex; }
+                }
+            }, [latex]);
+            return (
+                <div className={`relative w-full flex justify-center items-center ${className}`}>
+                    <div ref={containerRef} className="w-full text-center" />
+                </div>
+            );
+        });
+
+        const FloatingBackground = memo(() => {
+            const symbols = ['E', 'm', 'v', 'h', 'J', 'g', 'K', 'U'];
+            const elements = Array.from({ length: 30 }).map((_, i) => ({
+                id: i, symbol: symbols[Math.floor(Math.random() * symbols.length)], left: `${Math.random() * 100}%`,
+                animationDuration: `${10 + Math.random() * 15}s`, animationDelay: `-${Math.random() * 20}s`,
+                fontSize: `${1 + Math.random() * 3}rem`, opacity: 0.1 + Math.random() * 0.15
+            }));
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    {elements.map((el) => (
+                        <div key={el.id} className="absolute text-white font-black animate-floatUp select-none drop-shadow-lg" style={{ left: el.left, bottom: '-15%', fontSize: el.fontSize, opacity: el.opacity, animationDuration: el.animationDuration, animationDelay: el.animationDelay }}>
+                            {el.symbol}
+                        </div>
+                    ))}
+                </div>
+            );
+        });
+
+        const Confetti = memo(() => {
+            const colors = ['#fde047', '#60a5fa', '#f472b6', '#34d399', '#a78bfa', '#ff5722'];
+            const pieces = Array.from({ length: 120 }).map((_, i) => ({
+                id: i, left: `${50 + (Math.random() * 20 - 10)}%`, color: colors[Math.floor(Math.random() * colors.length)],
+                tx: `${(Math.random() - 0.5) * 800}px`, ty: `${(Math.random() - 1) * 800}px`, rot: `${Math.random() * 720}deg`, delay: `${Math.random() * 0.2}s`
+            }));
+            return (
+                <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-hidden">
+                    {pieces.map((p) => (
+                        <div key={p.id} className="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full animate-confettiExplosion shadow-sm" style={{ backgroundColor: p.color, '--tx': p.tx, '--ty': p.ty, '--rot': p.rot, animationDelay: p.delay, left: p.left, top: '50%' }} />
+                    ))}
+                </div>
+            );
+        });
+
+        const RobotAssistant = ({ step, maxSteps }) => {
+            const isFinalStep = step >= maxSteps;
+            const isThinking = step === maxSteps - 1;
+
+            const getContainerAnim = () => { if (isFinalStep) return 'animate-robotJump'; if (isThinking) return 'animate-robotThinkTilt'; return 'animate-robotFloat'; };
+            const getArmLAnim = () => { if (isFinalStep) return 'rotate-[150deg] animate-pulse'; if (step > 0) return 'animate-robotTalkArmL'; return 'rotate-45'; };
+            const getArmRAnim = () => { if (isFinalStep) return '-rotate-[150deg] animate-pulse'; if (step > 0) return 'animate-robotTalkArmR'; return '-rotate-45'; };
+            
+            const getEyes = () => {
+                if (isFinalStep) return <div className="w-full flex justify-between px-1.5"><div className="w-3.5 h-2 bg-emerald-400 rounded-t-full mt-1"></div><div className="w-3.5 h-2 bg-emerald-400 rounded-t-full mt-1"></div></div>;
+                if (step === 0) return <div className="w-full flex justify-between px-2"><div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div><div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div></div>;
+                return <div className="w-full flex justify-between px-1.5"><div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div><div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div></div>;
+            };
+            const getMouth = () => {
+                if (isFinalStep) return <div className="w-6 h-3.5 bg-rose-400 rounded-b-full mt-1.5"></div>;
+                if (step === 0) return <div className="w-4 h-1.5 bg-cyan-300 rounded-full mt-2"></div>;
+                return <div className="w-3.5 h-3.5 bg-rose-400 rounded-full mt-1 animate-ping"></div>;
+            };
+
+            return (
+                <div className={`relative flex flex-col items-center drop-shadow-lg select-none ${getContainerAnim()}`}>
+                    <div className="relative z-0 flex flex-col items-center translate-y-1">
+                        <div className={`w-3.5 h-3.5 rounded-full shadow-[0_0_10px_currentColor] z-10 transition-colors duration-300 ${isFinalStep ? 'text-emerald-400 bg-emerald-400' : 'text-yellow-400 bg-yellow-400 animate-pulse'}`}></div>
+                        <div className="w-1.5 h-4 bg-slate-300"></div>
+                    </div>
+                    <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-white to-slate-200 rounded-[1.2rem] border-[3px] border-orange-500 shadow-xl flex flex-col items-center justify-center p-1.5">
+                        <div className="w-full h-full bg-slate-900 rounded-lg flex flex-col items-center justify-center p-1.5 shadow-inner border-2 border-orange-400">
+                            {getEyes()} {getMouth()}
+                        </div>
+                    </div>
+                    <div className={`absolute top-1/2 -left-2 w-3 h-5 bg-slate-200 border-[2.5px] border-orange-500 rounded-full z-0 origin-top ${getArmLAnim()}`}></div>
+                    <div className={`absolute top-1/2 -right-2 w-3 h-5 bg-slate-200 border-[2.5px] border-orange-500 rounded-full z-0 origin-top ${getArmRAnim()}`}></div>
+                </div>
+            );
+        };
+
+        function App() {
+            const [view, setView] = useState('home');
+            const [exIdx, setExIdx] = useState(0);
+            const [step, setStep] = useState(0);
+            const [isMuted, setIsMuted] = useState(false);
+
+            const currentExercise = ENERGY_EXERCISES[exIdx];
+            const maxSteps = currentExercise.steps.length - 1;
+            const currentStepData = currentExercise.steps[step];
+
+            const getVisibleSteps = () => {
+                // Siempre tratamos de mostrar 4 pasos (start a max). Si estamos en step 3, mostramos del 0 al 3.
+                const start = Math.max(0, step - 3);
+                return currentExercise.steps.slice(start, step + 1).map((data, index) => ({
+                    ...data,
+                    originalIndex: start + index,
+                    isCurrent: (start + index) === step
+                }));
+            };
+
+            const handleInteraction = () => AudioController.init();
+
+            const startExercise = (index) => {
+                handleInteraction();
+                AudioController.play('swoosh');
+                setExIdx(index);
+                setStep(0);
+                setView('lab');
+            };
+
+            const nextStep = () => {
+                handleInteraction();
+                if (step < maxSteps) {
+                    const next = step + 1;
+                    setStep(next);
+                    if (next === maxSteps) AudioController.play('success');
+                    else AudioController.play('pop');
+                } else {
+                    if (exIdx < ENERGY_EXERCISES.length - 1) {
+                        AudioController.play('swoosh');
+                        setExIdx(exIdx + 1);
+                        setStep(0);
+                    } else {
+                        AudioController.play('swoosh');
+                        setView('home');
+                    }
+                }
+            };
+
+            const prevStep = () => {
+                handleInteraction();
+                if (step > 0) {
+                    setStep(step - 1);
+                    AudioController.play('pop-reverse');
+                }
+            };
+
+            const toggleMute = () => { handleInteraction(); setIsMuted(AudioController.toggleMute()); };
+
+            if (view === 'home') {
+                return (
+                    <div className="w-screen min-h-[100dvh] bg-gradient-to-br from-[#ea580c] via-[#dc2626] to-[#b91c1c] flex flex-col items-center justify-start p-4 sm:p-6 relative font-fun overflow-y-auto overflow-x-hidden scrollbar-hide">
+                        <FloatingBackground />
+                        
+                        <div className="w-full max-w-7xl z-20 flex items-center justify-between mb-8 mt-2">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 border-yellow-300 bg-white/15 backdrop-blur-md text-yellow-300 font-black tracking-wider uppercase shadow-md text-sm sm:text-base">
+                                <Zap className="w-5 h-5 text-yellow-300" /> TuProfe20 Lab
+                            </div>
+                            <button onClick={toggleMute} className="p-2 sm:p-3 rounded-2xl bg-white/20 border-2 border-white/30 backdrop-blur-md text-white hover:bg-white/30 transition-all active:scale-95">
+                                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                            </button>
+                        </div>
+
+                        <div className="relative z-10 text-center w-full max-w-7xl flex flex-col items-center">
+                            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white mb-3 drop-shadow-[0_6px_0_rgba(0,0,0,0.3)] tracking-tight leading-none uppercase">
+                                Conservación de la <span className="text-yellow-300 underline decoration-wavy decoration-orange-300">Energía</span>
+                            </h1>
+                            <p className="text-base sm:text-xl lg:text-2xl text-orange-100 mb-8 font-bold max-w-3xl leading-relaxed">
+                                Domina el balance entre potencial y cinética con 12 retos paso a paso ⚡🚀
+                            </p>
+
+                            <div className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 mb-12">
+                                {ENERGY_EXERCISES.map((ex, idx) => (
+                                    <button
+                                        key={ex.id}
+                                        onClick={() => startExercise(idx)}
+                                        className="group text-left p-3 sm:p-4 rounded-[1.5rem] bg-gradient-to-br bg-opacity-90 backdrop-blur-xl border-[3px] border-white/40 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.3)] transition-all flex flex-col relative overflow-hidden shadow-lg min-h-[9rem] sm:min-h-[11rem]"
+                                        style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
+                                    >
+                                        <div className={`absolute inset-0 opacity-80 ${ex.cardGradient}`}></div>
+                                        <div className="relative z-10 flex-1 flex flex-col h-full">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className={`${ex.badgeColor} text-white text-[10px] sm:text-xs font-black px-2 py-1 rounded-md uppercase tracking-widest shadow-sm`}>
+                                                    Reto {ex.id}
+                                                </span>
+                                                <span className="bg-black/20 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md">
+                                                    {ex.steps.length} pasos
+                                                </span>
+                                            </div>
+                                            <div className="flex-1 my-2 bg-white/95 rounded-xl p-2 sm:p-3 text-slate-900 shadow-inner overflow-hidden flex items-center justify-center border border-white/60 w-full pointer-events-none math-card">
+                                                <MathDisplay latex={ex.steps[0].latex} />
+                                            </div>
+                                            <div className="text-white text-xs sm:text-sm font-black flex items-center justify-between mt-1 h-8">
+                                                <span className="leading-tight drop-shadow-md pr-1 line-clamp-2">{ex.subtitle}</span>
+                                                <span className="bg-yellow-400 text-slate-900 w-5 h-5 rounded-full flex items-center justify-center font-black group-hover:translate-x-1 transition-transform shrink-0 shadow-sm text-xs">➔</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#7c2d12] to-[#450a0a] text-slate-800 flex flex-col p-2 sm:p-4 relative font-fun overflow-hidden">
+                    <FloatingBackground />
+                    {step === maxSteps && <Confetti />}
+
+                    <div className="shrink-0 relative z-10 w-full max-w-6xl mx-auto flex justify-between items-center mb-3 px-1">
+                        <button onClick={() => { AudioController.play('swoosh'); setView('home'); }} className="flex items-center justify-center px-4 py-2 sm:px-5 sm:py-2.5 rounded-[1rem] sm:rounded-[1.2rem] bg-white/10 border-[3px] border-white/30 backdrop-blur-md text-white font-black hover:bg-white/20 transition-all shadow-lg active:scale-95 text-sm sm:text-base hover:scale-105">
+                            <Home className="w-5 h-5 sm:mr-2" />
+                            <span className="hidden sm:inline">Portada</span>
+                        </button>
+
+                        <div className="flex items-center gap-1 bg-black/30 p-1.5 rounded-[1rem] border-2 border-white/20 backdrop-blur-md shadow-lg overflow-x-auto scrollbar-hide max-w-[50vw]">
+                            {ENERGY_EXERCISES.map((ex, i) => (
+                                <button
+                                    key={ex.id}
+                                    onClick={() => startExercise(i)}
+                                    className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-[0.8rem] font-black text-xs sm:text-sm transition-all ${exIdx === i ? 'bg-yellow-400 text-slate-900 scale-110 shadow-[0_0_10px_rgba(250,204,21,0.6)] mx-1' : 'text-white hover:bg-white/20'}`}
+                                >
+                                    {ex.id}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button onClick={toggleMute} className="p-2 sm:p-3 rounded-[1rem] sm:rounded-[1.2rem] bg-white/10 border-[3px] border-white/30 text-white hover:bg-white/20 transition-all shadow-lg active:scale-95 hover:scale-105">
+                            {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        </button>
+                    </div>
+
+                    <div className="flex-1 min-h-0 relative z-10 w-full max-w-6xl mx-auto bg-white rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] border-slate-100 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+                        
+                        <div className="shrink-0 bg-slate-900 border-b-[6px] border-orange-500 px-4 py-3 sm:px-6 sm:py-4 flex flex-col items-center justify-center relative shadow-md">
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="bg-yellow-400 text-slate-900 font-black text-xs sm:text-sm px-3 py-1 rounded-md uppercase tracking-widest shadow-sm">
+                                    {currentExercise.title}
+                                </span>
+                                <span className="text-orange-200 font-bold text-xs sm:text-sm bg-white/10 px-3 py-1 rounded-md">
+                                    {currentExercise.subtitle}
+                                </span>
+                            </div>
+                            <div className="text-white font-bold text-sm sm:text-base md:text-lg text-center w-full max-w-4xl leading-snug">
+                                {currentExercise.enunciadoText}
+                            </div>
+                        </div>
+
+                        <div className="flex-1 flex flex-col p-2 sm:p-4 relative bg-slate-50 overflow-hidden w-full h-full">
+                            <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#475569_2px,transparent_2px)] [background-size:30px_30px] pointer-events-none"></div>
+
+                            <div className="flex flex-col justify-end w-full h-full z-10 space-y-2 sm:space-y-3">
+                                {getVisibleSteps().map((row, idx) => (
+                                    <div 
+                                        key={`row-${exIdx}-${row.originalIndex}`} 
+                                        className={`w-full flex items-center justify-between gap-2 sm:gap-3 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-2 transition-all animate-fadeInRow ${row.originalIndex === maxSteps ? 'bg-[#fde047] border-[#eab308] shadow-[0_5px_20px_rgba(234,179,8,0.4)]' : row.isCurrent ? 'bg-white border-orange-300 shadow-md' : 'bg-slate-100/50 border-slate-200 opacity-70'}`}
+                                    >
+                                        <div className="w-1/3 sm:w-1/4 shrink-0">
+                                            <span className={`inline-flex w-full items-center justify-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl font-bold text-xs sm:text-sm text-center ${row.originalIndex === maxSteps ? 'bg-amber-400 text-slate-900' : row.isCurrent ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                {row.originalIndex === maxSteps ? <CheckCircle className="w-4 h-4 hidden sm:block" /> : <Sparkles className="w-4 h-4 hidden sm:block" />} 
+                                                <span className="line-clamp-2">{row.propertyText}</span>
+                                            </span>
+                                        </div>
+                                        <div className={`flex-1 flex justify-center items-center overflow-x-auto scrollbar-hide px-2 ${row.originalIndex === maxSteps ? 'math-row-final' : 'math-row'}`}>
+                                            <MathDisplay latex={row.latex} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="shrink-0 bg-white w-full px-4 py-3 sm:px-8 sm:py-4 flex items-center gap-4 border-t-[6px] border-slate-100 z-10 relative">
+                            <div className="shrink-0 absolute -top-12 sm:relative sm:-top-0 left-4 sm:left-0 drop-shadow-xl">
+                                <RobotAssistant step={step} maxSteps={maxSteps} />
+                            </div>
+                            <div className="flex-1 text-sm sm:text-lg font-bold text-slate-700 leading-snug bg-orange-50/80 p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.2rem] border-2 border-orange-100 min-h-[4rem] flex items-center shadow-sm ml-[4.5rem] sm:ml-0">
+                                <div key={`speech-${exIdx}-${step}`} className="animate-slideInRight w-full">
+                                    {currentStepData.robotSpeech}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="shrink-0 bg-gradient-to-b from-[#fed7aa] to-[#fdba74] p-3 sm:p-5 w-full flex flex-col items-center border-t-[6px] border-white z-10">
+                            <div className="flex justify-center items-stretch w-full max-w-4xl gap-3 h-12 sm:h-14">
+                                <button
+                                    onClick={prevStep}
+                                    disabled={step === 0}
+                                    className="flex-[0.8] bg-[#fdba74] border-b-[4px] border-[#ea580c] text-[#7c2d12] rounded-l-2xl rounded-r-xl font-black text-sm sm:text-xl flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] disabled:opacity-40 transition-all hover:bg-[#fed7aa]"
+                                >
+                                    <ChevronLeft className="w-5 h-5 sm:w-7 sm:h-7 stroke-[4px]" />
+                                    <span className="hidden sm:inline">Atrás</span>
+                                </button>
+
+                                <div className="bg-[#ea580c] text-white font-black px-4 sm:px-6 text-base sm:text-xl flex items-center justify-center rounded-2xl border-b-[4px] border-[#c2410c] shadow-inner whitespace-nowrap">
+                                    Paso {step}/{maxSteps}
+                                </div>
+
+                                <button
+                                    onClick={nextStep}
+                                    className={`flex-[2] border-b-[4px] text-white rounded-r-2xl rounded-l-xl font-black text-base sm:text-2xl flex items-center justify-center gap-2 active:border-b-0 active:translate-y-[4px] transition-all shadow-sm hover:brightness-110 ${
+                                        step === maxSteps
+                                            ? 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] animate-pulse'
+                                            : 'bg-gradient-to-r from-[#f97316] to-[#dc2626] border-[#991b1b]'
+                                    }`}
+                                >
+                                    <span>
+                                        {step < maxSteps
+                                            ? 'Siguiente'
+                                            : exIdx < ENERGY_EXERCISES.length - 1
+                                            ? `Reto ${exIdx + 2}`
+                                            : 'Volver'}
+                                    </span>
+                                    <ChevronRight className="w-5 h-5 sm:w-7 sm:h-7 stroke-[4px]" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
